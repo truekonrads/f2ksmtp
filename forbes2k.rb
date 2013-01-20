@@ -136,7 +136,7 @@ class AnalyzeForbes2000
        # results[shortname][:errors]=failures.join "\n"
        # results[shortname][:supportingmx]=accepts
        results.each { |shortname,v|
-         v[:strattls_support]="N/A"
+         v[:starttls_support]="N/A"
          v[:mx]=v[:mx].delete_if {|x| x.nil?}
           
          v[:good_mx]=v[:mx].find_all {|mx| mx[:starttls] == true and mx[:verification]==true} 
@@ -145,11 +145,11 @@ class AnalyzeForbes2000
 
          if v[:connected_mx].count > 0
            if v[:good_mx].count == v[:connected_mx].count and v[:partial_mx].count == 0
-             v[:strattls_support]="Full"
+             v[:starttls_support]="Full"
            elsif v[:partial_mx].count >0
-             v[:strattls_support]="Eavesdropping"
+             v[:starttls_support]="Eavesdropping"
            else
-             v[:strattls_support]="None"
+             v[:starttls_support]="None"
            end
            # require 'pry'
            # binding.pry
@@ -166,7 +166,7 @@ class AnalyzeForbes2000
                # require 'pry'
                # binding.pry
                row << (r[:longname] + "/" + name)
-               row << r[:strattls_support]
+               row << r[:starttls_support]
                row << "#{r[:good_mx].count}/#{r[:partial_mx].count}/#{r[:connected_mx].count}/#{r[:mx].count}"
                row << (r[:errors] || "").wrap(50)
                rows << row
