@@ -8,8 +8,8 @@ require 'openssl'
 # require 'dnsruby'
 #include Dnsrub"
 
-class SMTPEncryptionChecker
 
+class SMTPEncryptionChecker
   def initialize (logger=nil)
     if not logger
       @logger=setupDefaulLogger
@@ -36,10 +36,10 @@ class SMTPEncryptionChecker
 
     def checkDomain(domain)
       mxservers=getExchangesForDomain(ensureDomain(domain))
-      res={}
+      res=[]
       if not mxservers.empty?
 	      mxservers.each do |s|
-	        res[s]=checkServer s
+	        res<< (checkServer (s))
 	      end
 	  else
 	  	@logger.error "No MX found for #{domain}"
@@ -50,6 +50,7 @@ class SMTPEncryptionChecker
     
 
     def checkServer(server)
+      ret={:mx => server, :error => nil, :connection_success => false}
       @logger.debug("Probing #{server}")
       s=Net::SMTP.new(server,25)
       s.enable_starttls
@@ -57,30 +58,30 @@ class SMTPEncryptionChecker
         s.start
         s.finish
         @logger.info("Hurray! #{server} supports STARTTLS")
-        return true
+        ret.update ({:starttls =>true, :verification => true, :connection_success => true})
+        # return ret
       rescue Errno::ECONNREFUSED, Timeout::Error, SocketError
       	err="Could not connect to #{server}: #{$!}"
         @logger.warn(err)
-        return err
+        ret.update ({:starttls => false, :verification => false , :error => err, :connection_success => false})
       rescue Net::SMTPFatalError
       	err="The server refused to receive messages: #{$!}"
         @logger.warn(err)
-        return err
+        ret.update ({:starttls => false, :verification => false , :error => err, :connection_success => true})
       rescue Net::SMTPUnsupportedCommand
       	err="#{server} does not support STARTTLS"
         @logger.info("#{server} does not support STARTTLS")
-        return err
+        ret.update ({:starttls => false, :verification => false, :connection_success => true })
       rescue OpenSSL::SSL::SSLError
       	err="STARTTLS is supported, but could not negotiate secure transmission: #{$!}"
         @logger.info(err)
-        return err
-      
+        ret.update ({:starttls => true, :verification => false, :connection_success => true    }  )
       rescue
       	err="Unknwon error caught: #{$!}"
         @logger.error("Unknwon error caught: #{$!.class.to_s}/#{$!}")
-        
+        return nil
       end
-      return false
+      return ret
     end
 
     def getExchangesForDomain(domain)
