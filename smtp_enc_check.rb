@@ -22,6 +22,7 @@ class SMTPEncryptionChecker
     else
       @logger=logger
     end
+    @cache={}
   end
 
 
@@ -55,7 +56,10 @@ class SMTPEncryptionChecker
 
     
 
-    def checkServer(server)
+    def checkServer(server,ignoreCache=false)
+      if not ignoreCache and @cache.has_key? server
+      	return @cache[server]
+      end
       ret={:mx => server, :error => nil, :connection_success => false}
       @logger.debug("Probing #{server}")
       s=Net::SMTP.new(server,25)
@@ -65,25 +69,28 @@ class SMTPEncryptionChecker
         s.finish
         @logger.info("Hurray! #{server} supports STARTTLS")
         ret.update ({:starttls =>true, :verification => true, :connection_success => true})
+        @cache[server]=ret
         # return ret
       rescue Errno::ECONNREFUSED, Timeout::Error, SocketError
       	err="Could not connect to #{server}: #{$!}"
-        @logger.warn(err)
+        @logger.warn(server+":"+err)
         ret.update ({:starttls => false, :verification => false , :error => err, :connection_success => false})
       rescue Net::SMTPFatalError
       	err="The server refused to receive messages: #{$!}"
-        @logger.warn(err)
+        @logger.warn(server+":"+err)
         ret.update ({:starttls => false, :verification => false , :error => err, :connection_success => true})
       rescue Net::SMTPUnsupportedCommand
       	err="#{server} does not support STARTTLS"
-        @logger.info("#{server} does not support STARTTLS")
+        @logger.info("#{server}: does not support STARTTLS")
         ret.update ({:starttls => false, :verification => false, :connection_success => true })
+        @cache[server]=ret
       rescue OpenSSL::SSL::SSLError
       	err="STARTTLS is supported, but could not negotiate secure transmission: #{$!}"
-        @logger.info(err)
+        @logger.info(server+":"+err)
         ret.update ({:starttls => true, :verification => false, :connection_success => true    }  )
+        @cache[server]=ret
       rescue
-      	err="Unknwon error caught: #{$!}"
+      	# err="Unknwon error caught: #{$!}"
         @logger.error("Unknwon error caught: #{$!.class.to_s}/#{$!}")
         return nil
       end

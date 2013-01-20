@@ -35,6 +35,7 @@ class AnalyzeForbes2000
   end
 
   def getWebsiteURI (company)
+  	begin
     @logger.debug "Fetching website for #{company}"
     html=Net::HTTP.get(URI("http://www.forbes.com/companies/#{company}/"))
     begin
@@ -45,7 +46,12 @@ class AnalyzeForbes2000
      end
 	   @logger.debug "Website for #{company} is '#{website}'"
 	 return website
+	rescue
+		@logger.error("Unhandled exception in getWebsiteURI: #{$!}")
+		return nil
+	end
    end
+
 
                #
    def main
