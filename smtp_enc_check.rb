@@ -35,8 +35,8 @@ class SMTPEncryptionChecker
 
     def checkDomain(domain)
       mxservers=getExchangesForDomain(ensureDomain(domain))
+      res={}
       if not mxservers.empty?
-	      res={}
 	      mxservers.each do |s|
 	        res[s]=checkServer s
 	      end
@@ -55,9 +55,9 @@ class SMTPEncryptionChecker
       begin
         s.start
         s.finish
-        @logger.info("#{server} supports starttls")
+        @logger.info("Hurray! #{server} supports STARTTLS")
         return true
-      rescue Errno::ECONNREFUSED, Timeout::Error
+      rescue Errno::ECONNREFUSED, Timeout::Error, SocketError
       	err="Could not connect to #{server}: #{$!}"
         @logger.warn(err)
         return err
@@ -71,8 +71,9 @@ class SMTPEncryptionChecker
         return err
       rescue OpenSSL::SSL::SSLError
       	err="STARTTLS is supported, but could not negotiate secure transmission: #{$!}"
-        @logger.info()
+        @logger.info(err)
         return err
+      
       rescue
       	err="Unknwon error caught: #{$!}"
         @logger.error("Unknwon error caught: #{$!}")
