@@ -7,6 +7,7 @@ require 'resolv'
 require 'openssl'
 # require 'dnsruby'
 #include Dnsrub"
+
 class SMTPEncryptionChecker
 
   def initialize (logger=nil)

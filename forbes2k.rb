@@ -89,8 +89,6 @@ class AnalyzeForbes2000
 		        	failures << "#{server} said: #{result}"
 		        end
 	    	end
-			# require 'pry'
-	  #       binding.pry
 	    	if accepts == checks.count
 		        	results[shortname][:starttls_accepted]="Fully"
 		    elsif accepts == 0
@@ -102,8 +100,15 @@ class AnalyzeForbes2000
 	    	results[shortname][:supportingmx]=accepts
     	}
   	end
+ #  	require 'pry'
+	# binding.pry
+  	while pool.working >0
+  		@logger.debug "Waiting for tasks to finish, #{pool.working} threads active, #{pool.action_size} left"
+  		sleep 1
+  	end
   	@logger.debug("Shutting down pool")
   	pool.shutdown
+
   	case opts[:output].downcase
   	when "table"
 	  	rows=[]
@@ -113,16 +118,25 @@ class AnalyzeForbes2000
 	  		# binding.pry
 	  		row << r[:longname]
 	  		row << r[:starttls_accepted]
-	  		row << "#{r[:supportingmx]||0}/#{r[:totalmx]||0}"
+	  		row << "#{r[:supportingmx]}/#{r[:totalmx]||0}"
 	  		row << r[:errors]
 	  		rows << row
 	  	end
+	  	puts Terminal::Table.new :title => "Forbes 2000 survey results", 
+	  	:headings => ["Company","STARTTLS Support","MX Accept","Errors"],
+	  	:rows => rows
 	when "csv"
-
+		csv_options={:headers => ["Company","STARTTLS Support","MX Accept","Total MX", "Errors"],
+					:write_headers => true }
+		txt=CSV.generate csv_options do |csv|
+			results.each do |name, r|
+				csv << [r[:longname],r[:starttls_accepted],r[:starttls_accepted],r[:totalmx]||0,r[:errors]]
+			end
+		end
+		
+		puts txt
 	end
-  	puts Terminal::Table.new :title => "Forbes 2000 survey results", 
-  	:headings => ["Compnay","STARTTLS Support","MX Accept","Errors"],
-  	:rows => rows
+  	
 
   end # def main
 
