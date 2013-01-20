@@ -76,9 +76,8 @@ class SMTPEncryptionChecker
       
       rescue
       	err="Unknwon error caught: #{$!}"
-        @logger.error("Unknwon error caught: #{$!}")
-        require 'pry'
-        binding.pry
+        @logger.error("Unknwon error caught: #{$!.class.to_s}/#{$!}")
+        
       end
       return false
     end
