@@ -58,6 +58,7 @@ class SMTPEncryptionChecker
 
     def checkServer(server,ignoreCache=false)
       if not ignoreCache and @cache.has_key? server
+      	@logger.debug "Retrieving results for #{server} from cache"
       	return @cache[server]
       end
       ret={:mx => server, :error => nil, :connection_success => false}
