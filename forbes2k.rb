@@ -59,7 +59,7 @@ class AnalyzeForbes2000
        version "Forbes 2000 SMTP encryption analyzer v0.1 by Konrads Smelkovs, (c) 2013"
        opt :threads, "How many threads to use ", :type => :int, :default =>10
        opt :log_level, "log level, valid options are " + LEVELS.join(", "), :type => :string, :default=>'INFO'
-       opt :sample_size, "How many companies to sample", :type => :int, :default => 0
+       opt :sample_size, "How many companies to sample", :type => :int, :default => 2000
        opt :output, "What output format to use: " + OUTPUTS.join(", "), :type => :string, :default => 'table'
        opt :company, "Pick a specific company", :type => :string
        opt :hostname, "Specify host name with which to HELO", :type => :string, :short => "-n"
