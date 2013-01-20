@@ -56,6 +56,7 @@ class AnalyzeForbes2000
        opt :sample_size, "How many companies to sample", :type => :int, :default => 0
        opt :output, "What output format to use: " + OUTPUTS.join(", "), :type => :string, :default => 'table'
        opt :company, "Pick a specific company", :type => :string
+       opt :hostname, "Specify host name with which to HELO", :type => :string, :short => "-n"
      end
      Trollop::die :threads , "must be larger than 0" if opts[:threads]<1
      Trollop::die :log_level, "unknown log level #{opts[:log_level]}" if not LEVELS.include? opts[:log_level]
@@ -87,7 +88,7 @@ class AnalyzeForbes2000
            d=Domainatrix.parse website.strip
            domain="#{d.domain}.#{d.public_suffix}"
            # pool.proc
-           checker=SMTPEncryptionChecker.new @logger
+           checker=SMTPEncryptionChecker.new @logger, opts[:hostname]
            checks=checker.checkDomain domain
            if checks.empty?
              next

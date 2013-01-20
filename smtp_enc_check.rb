@@ -5,12 +5,18 @@ require 'log4r'
 require 'domainatrix'
 require 'resolv'
 require 'openssl'
+require 'socket'
 # require 'dnsruby'
 #include Dnsrub"
 
 
 class SMTPEncryptionChecker
-  def initialize (logger=nil)
+  def initialize (logger=nil, hostname = nil)
+  	if hostname.nil?
+  		@hostname = Socket::gethostname
+  	else
+  		@hostname = hostname
+  	end
     if not logger
       @logger=setupDefaulLogger
     else
@@ -55,7 +61,7 @@ class SMTPEncryptionChecker
       s=Net::SMTP.new(server,25)
       s.enable_starttls
       begin
-        s.start
+        s.start @hostname
         s.finish
         @logger.info("Hurray! #{server} supports STARTTLS")
         ret.update ({:starttls =>true, :verification => true, :connection_success => true})
