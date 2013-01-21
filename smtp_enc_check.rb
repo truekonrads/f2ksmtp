@@ -88,7 +88,7 @@ class SMTPEncryptionChecker
       rescue OpenSSL::SSL::SSLError
       	err="STARTTLS is supported, but could not negotiate secure transmission: #{$!}"
         @logger.info(server+":"+err)
-        ret.update ({:starttls => true, :verification => false, :connection_success => true    }  )
+        ret.update ({:starttls => true, :verification => false, :error => err, :connection_success => true    }  )
         @cache[server]=ret
       rescue
       	# err="Unknwon error caught: #{$!}"
